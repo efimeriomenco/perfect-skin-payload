@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-@config '../../../tailwind.config.mjs';
+@config '../../../../tailwind.config.mjs';
 
 @custom-variant dark (&:is([data-theme='dark'] *));
 @custom-variant sm (@media (width >= theme(--breakpoint-sm)));
@@ -210,7 +210,17 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground min-h-[100vh] flex flex-col;
+    @apply text-foreground min-h-[100vh] flex flex-col;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
 

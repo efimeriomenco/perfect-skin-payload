@@ -12,6 +12,24 @@ export const FormBlock: Block = {
   interfaceName: 'FormBlock',
   fields: [
     {
+      name: 'title',
+      type: 'text',
+      localized: true,
+      label: 'Title',
+      admin: {
+        description: 'e.g. Nu știți ce să alegeți?',
+      },
+    },
+    {
+      name: 'subtitle',
+      type: 'text',
+      localized: true,
+      label: 'Subtitle',
+      admin: {
+        description: 'e.g. Lăsați datele și vă vom suna înapoi.',
+      },
+    },
+    {
       name: 'form',
       type: 'relationship',
       relationTo: 'forms',

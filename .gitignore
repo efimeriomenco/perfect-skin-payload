@@ -3,8 +3,12 @@ dist / media
 node_modules
 .DS_Store
 .env
+.env.*
 .next
 .vercel
+
+# AmoCRM tokens (contains sensitive OAuth tokens)
+.amocrm-tokens.json
 
 # Payload default media upload directory
 public/media/

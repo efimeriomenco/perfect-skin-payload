@@ -27,7 +27,7 @@ export const Select: React.FC<
 > = ({ name, control, errors, label, options, required, width }) => {
   return (
     <Width width={width}>
-      <Label htmlFor={name}>{label}</Label>
+      <Label htmlFor={name} className="sr-only">{label}</Label>
       <Controller
         control={control}
         defaultValue=""

@@ -1,16 +1,16 @@
 import type { Metadata } from 'next'
 
 import { RelatedPosts } from '@/blocks/RelatedPosts/Component'
+import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { PayloadRedirects } from '@/components/PayloadRedirects'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
-import RichText from '@/components/RichText'
 
 import type { Post } from '@/payload-types'
 
-import { PostHero } from '@/heros/PostHero'
+import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { TypedLocale } from 'payload'
@@ -46,30 +46,22 @@ export default async function Post({ params: paramsPromise }: Args) {
   if (!post) return <PayloadRedirects url={url} />
 
   return (
-    <article className="pt-16 pb-16">
+    <article className="pb-16">
       <PageClient />
 
       {/* Allows redirects for valid pages too */}
       <PayloadRedirects disableNotFound url={url} />
 
-      <PostHero post={post} />
+      <RenderHero {...post.hero} pageTitle={post.title} />
 
-      <div className="flex flex-col items-center gap-4 pt-8">
-        <div className="container lg:mx-0 lg:grid lg:grid-cols-[1fr_48rem_1fr] grid-rows-[1fr]">
-          <RichText
-            className="lg:grid lg:grid-cols-subgrid col-start-1 col-span-3 grid-rows-[1fr]"
-            content={post.content}
-            enableGutter={false}
-          />
-        </div>
+      <RenderBlocks blocks={post.layout as any} locale={locale} />
 
-        {post.relatedPosts && post.relatedPosts.length > 0 && (
-          <RelatedPosts
-            className="mt-12"
-            docs={post.relatedPosts.filter((post) => typeof post === 'object')}
-          />
-        )}
-      </div>
+      {post.relatedPosts && post.relatedPosts.length > 0 && (
+        <RelatedPosts
+          className="mt-12"
+          docs={post.relatedPosts.filter((post) => typeof post === 'object')}
+        />
+      )}
     </article>
   )
 }

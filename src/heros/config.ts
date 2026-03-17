@@ -1,13 +1,6 @@
 import type { Field } from 'payload'
 
-import {
-  FixedToolbarFeature,
-  HeadingFeature,
-  InlineToolbarFeature,
-  lexicalEditor,
-} from '@payloadcms/richtext-lexical'
-
-import { linkGroup } from '@/fields/linkGroup'
+import { link } from '@/fields/link'
 
 export const hero: Field = {
   name: 'hero',
@@ -16,57 +9,61 @@ export const hero: Field = {
     {
       name: 'type',
       type: 'select',
-      defaultValue: 'lowImpact',
+      defaultValue: 'withImage',
       label: 'Type',
       options: [
         {
-          label: 'None',
-          value: 'none',
+          label: 'Default',
+          value: 'default',
         },
         {
-          label: 'High Impact',
-          value: 'highImpact',
+          label: 'With Image',
+          value: 'withImage',
         },
         {
-          label: 'Medium Impact',
-          value: 'mediumImpact',
-        },
-        {
-          label: 'Low Impact',
-          value: 'lowImpact',
+          label: 'Title Only',
+          value: 'title',
         },
       ],
       required: true,
     },
     {
-      name: 'richText',
-      type: 'richText',
+      name: 'title',
+      type: 'text',
       localized: true,
-      editor: lexicalEditor({
-        features: ({ rootFeatures }) => {
-          return [
-            ...rootFeatures,
-            HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
-            FixedToolbarFeature(),
-            InlineToolbarFeature(),
-          ]
-        },
-      }),
-      label: false,
-    },
-    linkGroup({
-      overrides: {
-        maxRows: 2,
-      },
-    }),
-    {
-      name: 'media',
-      type: 'upload',
-      admin: {
-        condition: (_, { type } = {}) => ['highImpact', 'mediumImpact'].includes(type),
-      },
-      relationTo: 'media',
+      label: 'Title',
       required: true,
+    },
+    {
+      name: 'backgroundImage',
+      type: 'upload',
+      relationTo: 'media',
+      label: 'Background Image',
+      admin: {
+        condition: (_, { type } = {}) => type === 'withImage' || type === 'default',
+      },
+    },
+    {
+      name: 'button',
+      type: 'group',
+      label: 'CTA Button',
+      admin: {
+        condition: (_, { type } = {}) => type === 'withImage' || type === 'default',
+        description: 'Add a call-to-action button (e.g., "Schedule a call")',
+      },
+      fields: [
+        {
+          name: 'label',
+          type: 'text',
+          localized: true,
+          label: 'Button Label',
+          defaultValue: 'PROGRAMEAZĂ-TE',
+        },
+        link({
+          appearances: false,
+          disableLabel: true,
+        }),
+      ],
     },
   ],
   label: false,

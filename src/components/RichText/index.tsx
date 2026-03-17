@@ -8,6 +8,7 @@ type Props = {
   content: Record<string, any>
   enableGutter?: boolean
   enableProse?: boolean
+  style?: React.CSSProperties
 }
 
 const RichText: React.FC<Props> = ({
@@ -15,6 +16,7 @@ const RichText: React.FC<Props> = ({
   content,
   enableGutter = true,
   enableProse = true,
+  style,
 }) => {
   if (!content) {
     return null
@@ -26,10 +28,11 @@ const RichText: React.FC<Props> = ({
         {
           'container ': enableGutter,
           'max-w-none': !enableGutter,
-          'mx-auto prose dark:prose-invert ': enableProse,
+          'mx-auto prose text-black! font-urbanist!': enableProse,
         },
         className,
       )}
+      style={style}
     >
       {content &&
         !Array.isArray(content) &&

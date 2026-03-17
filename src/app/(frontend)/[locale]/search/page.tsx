@@ -66,7 +66,7 @@ export default async function Page({
     <div className="pt-24 pb-24">
       <PageClient />
       <div className="container mb-16">
-        <div className="prose dark:prose-invert max-w-none">
+        <div className="prose max-w-none">
           <h1 className="sr-only">{t('search')}</h1>
           <Search />
         </div>
@@ -83,6 +83,6 @@ export default async function Page({
 
 export function generateMetadata(): Metadata {
   return {
-    title: `Payload Website Template Search`,
+    title: `Search`,
   }
 }

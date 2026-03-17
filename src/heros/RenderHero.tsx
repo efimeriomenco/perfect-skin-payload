@@ -2,24 +2,25 @@ import React from 'react'
 
 import type { Page } from '@/payload-types'
 
-import { HighImpactHero } from '@/heros/HighImpact'
-import { LowImpactHero } from '@/heros/LowImpact'
-import { MediumImpactHero } from '@/heros/MediumImpact'
+import { WithImageHero } from '@/heros/WithImage'
+import { TitleHero } from '@/heros/Title'
 
-const heroes = {
-  highImpact: HighImpactHero,
-  lowImpact: LowImpactHero,
-  mediumImpact: MediumImpactHero,
+type RenderHeroProps = Page['hero'] & {
+  pageTitle?: string | null
 }
 
-export const RenderHero: React.FC<Page['hero']> = (props) => {
-  const { type } = props || {}
+export const RenderHero: React.FC<RenderHeroProps> = (props) => {
+  const { type, pageTitle } = props || {}
 
-  if (!type || type === 'none') return null
+  if (!type || (type as string) === 'none') return null
 
-  const HeroToRender = heroes[type]
+  if (type === 'title') {
+    return <TitleHero pageTitle={pageTitle} />
+  }
 
-  if (!HeroToRender) return null
+  if (type === 'withImage' || type === 'default') {
+    return <WithImageHero {...props} />
+  }
 
-  return <HeroToRender {...props} />
+  return null
 }

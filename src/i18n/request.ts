@@ -19,8 +19,17 @@ export default getRequestConfig(async ({ requestLocale }) => {
     locale = routing.defaultLocale
   }
 
+  // Try to load messages for the locale, fallback to English if not found
+  let messages
+  try {
+    messages = (await import(`./messages/${locale}.json`)).default
+  } catch (error) {
+    console.warn(`Messages file for locale "${locale}" not found, falling back to English`)
+    messages = (await import(`./messages/en.json`)).default
+  }
+
   return {
     locale,
-    messages: (await import(`./messages/${locale}.json`)).default,
+    messages,
   }
 })

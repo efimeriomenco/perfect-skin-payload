@@ -6,7 +6,7 @@ import type { Header } from '@/payload-types'
 import { TypedLocale } from 'payload'
 
 export async function Header({ locale }: { locale: TypedLocale }) {
-  const header: Header = await getCachedGlobal('header', 1, locale)()
+  const header = (await getCachedGlobal('header', 1, locale)()) as Header
 
   return <HeaderClient header={header} />
 }

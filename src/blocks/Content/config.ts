@@ -1,13 +1,18 @@
 import type { Block, Field } from 'payload'
 
 import {
+  ChecklistFeature,
   FixedToolbarFeature,
   HeadingFeature,
   InlineToolbarFeature,
+  OrderedListFeature,
+  TextStateFeature,
+  UnorderedListFeature,
   lexicalEditor,
 } from '@payloadcms/richtext-lexical'
 
 import { link } from '@/fields/link'
+import { fontSizeState, fontWeightState } from '@/fields/fontSizes'
 
 const columnFields: Field[] = [
   {
@@ -42,8 +47,14 @@ const columnFields: Field[] = [
         return [
           ...rootFeatures,
           HeadingFeature({ enabledHeadingSizes: ['h2', 'h3', 'h4'] }),
+          UnorderedListFeature(),
+          OrderedListFeature(),
+          ChecklistFeature(),
           FixedToolbarFeature(),
           InlineToolbarFeature(),
+          TextStateFeature({
+            state: { fontSize: fontSizeState, fontWeight: fontWeightState },
+          }),
         ]
       },
     }),

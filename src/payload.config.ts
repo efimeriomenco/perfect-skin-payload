@@ -1,5 +1,5 @@
-// storage-adapter-import-placeholder
-import { mongooseAdapter } from '@payloadcms/db-mongodb'
+import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
+import { postgresAdapter } from '@payloadcms/db-postgres'
 import { payloadCloudPlugin } from '@payloadcms/payload-cloud'
 import { formBuilderPlugin } from '@payloadcms/plugin-form-builder'
 import { nestedDocsPlugin } from '@payloadcms/plugin-nested-docs'
@@ -25,7 +25,10 @@ import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import Users from './collections/Users'
-import { seedHandler } from './endpoints/seedHandler'
+import { Members } from './collections/Members'
+import { Reviews } from './collections/Reviews'
+import { amocrmSetupHandler, amocrmStatusHandler } from './endpoints/amocrmSetup'
+import { syncFormSubmissionToAmoCRM } from './hooks/syncAmoCRM'
 import { Footer } from './globals/Footer/config'
 import { Header } from './globals/Header/config'
 import { revalidateRedirects } from './hooks/revalidateRedirects'
@@ -40,7 +43,7 @@ const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 const generateTitle: GenerateTitle<Post | Page> = ({ doc }) => {
-  return doc?.title ? `${doc.title} | Payload Website Template` : 'Payload Website Template'
+  return doc?.title ? `${doc.title}` : ''
 }
 
 const generateURL: GenerateURL<Post | Page> = ({ doc }) => {
@@ -55,7 +58,6 @@ export default buildConfig({
       // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
       // Feel free to delete this at any time. Simply remove the line below.
       beforeLogin: ['@/components/BeforeLogin'],
-      afterDashboard: ['@/components/AfterDashboard'],
     },
     importMap: {
       baseDir: path.resolve(dirname),
@@ -122,19 +124,26 @@ export default buildConfig({
       ]
     },
   }),
-  db: mongooseAdapter({
-    url: process.env.DATABASE_URL || '',
+  db: postgresAdapter({
+    pool: {
+      connectionString: process.env.DATABASE_URL || '',
+    },
   }),
-  collections: [Pages, Posts, Media, Categories, Users],
+  collections: [Pages, Posts, Media, Categories, Users, Members, Reviews],
   cors: [process.env.PAYLOAD_PUBLIC_SERVER_URL || ''].filter(Boolean),
   csrf: [process.env.PAYLOAD_PUBLIC_SERVER_URL || ''].filter(Boolean),
   endpoints: [
-    // The seed endpoint is used to populate the database with some example data
-    // You should delete this endpoint before deploying your site to production
+    // AmoCRM integration setup - exchange auth code for tokens
     {
-      handler: seedHandler,
+      handler: amocrmSetupHandler,
+      method: 'post',
+      path: '/amocrm-setup',
+    },
+    // AmoCRM integration status check
+    {
+      handler: amocrmStatusHandler,
       method: 'get',
-      path: '/seed',
+      path: '/amocrm-status',
     },
   ],
   globals: [Header, Footer],
@@ -177,20 +186,23 @@ export default buildConfig({
           return defaultFields.map((field) => {
             if ('name' in field && field.name === 'confirmationMessage') {
               return {
-                ...field,
-                editor: lexicalEditor({
-                  features: ({ rootFeatures }) => {
-                    return [
-                      ...rootFeatures,
-                      FixedToolbarFeature(),
-                      HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
-                    ]
-                  },
-                }),
+                name: 'confirmationMessage',
+                type: 'textarea',
+                localized: true,
+                required: false,
+                label: 'Confirmation Message',
+                admin: {
+                  description: 'Message shown after successful form submission',
+                },
               }
             }
             return field
           })
+        },
+      },
+      formSubmissionOverrides: {
+        hooks: {
+          afterChange: [syncFormSubmissionToAmoCRM],
         },
       },
     }),
@@ -203,7 +215,13 @@ export default buildConfig({
         },
       },
     }),
-    payloadCloudPlugin(), // storage-adapter-placeholder
+    payloadCloudPlugin(),
+    vercelBlobStorage({
+      collections: {
+        media: true,
+      },
+      token: process.env.BLOB_READ_WRITE_TOKEN || '',
+    }),
   ],
   localization,
   secret: process.env.PAYLOAD_SECRET!,

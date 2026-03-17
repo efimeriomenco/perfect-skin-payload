@@ -74,7 +74,7 @@ export const Archive: Block = {
         condition: (_, siblingData) => siblingData.populateBy === 'collection',
         step: 1,
       },
-      defaultValue: 10,
+      defaultValue: 6,
       label: 'Limit',
     },
     {

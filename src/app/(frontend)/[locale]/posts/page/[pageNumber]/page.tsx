@@ -42,7 +42,7 @@ export default async function Page({ params: paramsPromise }: Args) {
     <div className="pt-24 pb-24">
       <PageClient />
       <div className="container mb-16">
-        <div className="prose dark:prose-invert max-w-none">
+        <div className="prose max-w-none">
           <h1>{t('posts')}</h1>
         </div>
       </div>
@@ -70,7 +70,7 @@ export default async function Page({ params: paramsPromise }: Args) {
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { pageNumber } = await paramsPromise
   return {
-    title: `Payload Website Template Posts Page ${pageNumber || ''}`,
+    title: `Posts Page ${pageNumber || ''}`,
   }
 }
 

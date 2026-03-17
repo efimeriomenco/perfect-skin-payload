@@ -2,6 +2,10 @@
 const config = {
   theme: {
     extend: {
+      fontFamily: {
+        'work-sans': ['var(--font-work-sans)', 'sans-serif'],
+        urbanist: ['var(--font-urbanist)', 'sans-serif'],
+      },
       typography: () => ({
         DEFAULT: {
           css: [

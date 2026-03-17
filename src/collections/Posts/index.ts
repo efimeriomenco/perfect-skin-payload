@@ -1,22 +1,17 @@
 import type { CollectionConfig, TypedLocale } from 'payload'
 
-import {
-  BlocksFeature,
-  FixedToolbarFeature,
-  HeadingFeature,
-  HorizontalRuleFeature,
-  InlineToolbarFeature,
-  lexicalEditor,
-} from '@payloadcms/richtext-lexical'
-
 import { authenticated } from '../../access/authenticated'
 import { authenticatedOrPublished } from '../../access/authenticatedOrPublished'
 import { Banner } from '../../blocks/Banner/config'
 import { Code } from '../../blocks/Code/config'
+import { Content } from '../../blocks/Content/config'
 import { MediaBlock } from '../../blocks/MediaBlock/config'
+import { CallToAction } from '../../blocks/CallToAction/config'
+import { FormBlock } from '../../blocks/Form/config'
 import { generatePreviewPath } from '../../utilities/generatePreviewPath'
 import { populateAuthors } from './hooks/populateAuthors'
 import { revalidatePost } from './hooks/revalidatePost'
+import { hero } from '@/heros/config'
 
 import {
   MetaDescriptionField,
@@ -67,27 +62,38 @@ export const Posts: CollectionConfig = {
       required: true,
     },
     {
+      name: 'featuredImage',
+      type: 'upload',
+      relationTo: 'media',
+      label: 'Featured Image',
+      admin: {
+        description: 'This image will appear in the blog listing grid.',
+      },
+    },
+    {
+      name: 'shortDescription',
+      type: 'textarea',
+      localized: true,
+      label: 'Short Description',
+      maxLength: 300,
+      admin: {
+        description: 'A brief summary shown on the blog listing grid (max 300 characters).',
+      },
+    },
+    {
       type: 'tabs',
       tabs: [
         {
+          fields: [hero],
+          label: 'Hero',
+        },
+        {
           fields: [
             {
-              name: 'content',
-              type: 'richText',
+              name: 'layout',
+              type: 'blocks',
               localized: true,
-              editor: lexicalEditor({
-                features: ({ rootFeatures }) => {
-                  return [
-                    ...rootFeatures,
-                    HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
-                    BlocksFeature({ blocks: [Banner, Code, MediaBlock] }),
-                    FixedToolbarFeature(),
-                    InlineToolbarFeature(),
-                    HorizontalRuleFeature(),
-                  ]
-                },
-              }),
-              label: false,
+              blocks: [Content, MediaBlock, CallToAction, Banner, Code, FormBlock],
               required: true,
             },
           ],
@@ -212,11 +218,7 @@ export const Posts: CollectionConfig = {
     afterRead: [populateAuthors],
   },
   versions: {
-    drafts: {
-      autosave: {
-        interval: 100, // We set this interval for optimal live preview
-      },
-    },
+    drafts: true,
     maxPerDoc: 50,
   },
 }

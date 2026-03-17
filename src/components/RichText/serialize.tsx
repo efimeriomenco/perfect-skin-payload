@@ -17,6 +17,33 @@ import {
   IS_UNDERLINE,
 } from './nodeFormat'
 import type { Page } from '@/payload-types'
+import { fontSizeStyles, fontWeightStyles } from '@/fields/fontSizes'
+
+/**
+ * CSS mappings for TextStateFeature values (must match block configs).
+ * Uses clamp() for fluid responsive typography.
+ */
+const textStateCssMap: Record<string, Record<string, React.CSSProperties>> = {
+  fontSize: fontSizeStyles,
+  fontWeight: fontWeightStyles,
+}
+
+/**
+ * Resolve TextStateFeature node state into a React style object.
+ * Lexical stores TextState under the '$' key (NODE_STATE_KEY) in serialized JSON.
+ */
+function getTextStateStyles(node: Record<string, any>): React.CSSProperties | undefined {
+  const state = node['$'] as Record<string, string> | undefined
+  if (!state) return undefined
+  let styles: React.CSSProperties = {}
+  for (const [stateKey, stateValue] of Object.entries(state)) {
+    const mapping = textStateCssMap[stateKey]?.[stateValue]
+    if (mapping) {
+      styles = { ...styles, ...mapping }
+    }
+  }
+  return Object.keys(styles).length > 0 ? styles : undefined
+}
 
 export type NodeTypes =
   | DefaultNodeTypes
@@ -71,6 +98,16 @@ export function serializeLexical({ nodes }: Props): JSX.Element {
             text = <sup key={index}>{text}</sup>
           }
 
+          // Apply TextStateFeature styles (e.g. font sizes)
+          const stateStyles = getTextStateStyles(node as any)
+          if (stateStyles) {
+            text = (
+              <span key={index} style={stateStyles}>
+                {text}
+              </span>
+            )
+          }
+
           return text
         }
 
@@ -78,7 +115,7 @@ export function serializeLexical({ nodes }: Props): JSX.Element {
         // https://github.com/facebook/lexical/blob/d10c4e6e55261b2fdd7d1845aed46151d0f06a8c/packages/lexical-list/src/LexicalListItemNode.ts#L133
         // which does not return checked: false (only true - i.e. there is no prop for false)
         const serializedChildrenFn = (node: NodeTypes): JSX.Element | null => {
-          if (node.children == null) {
+          if (!('children' in node) || node.children == null) {
             return null
           } else {
             if (node?.type === 'list' && node?.listType === 'check') {
@@ -130,11 +167,11 @@ export function serializeLexical({ nodes }: Props): JSX.Element {
         } else {
           switch (node.type) {
             case 'linebreak': {
-              return <br className="col-start-2" key={index} />
+              return <br className="col-start-2 linebreak" key={index} />
             }
             case 'paragraph': {
               return (
-                <p className="col-start-2" key={index}>
+                <p className="col-start-2 paragraph text-black! font-urbanist" key={index}>
                   {serializedChildren}
                 </p>
               )
@@ -142,7 +179,7 @@ export function serializeLexical({ nodes }: Props): JSX.Element {
             case 'heading': {
               const Tag = node?.tag
               return (
-                <Tag className="col-start-2" key={index}>
+                <Tag className="col-start-2 heading" key={index}>
                   {serializedChildren}
                 </Tag>
               )
@@ -150,7 +187,7 @@ export function serializeLexical({ nodes }: Props): JSX.Element {
             case 'list': {
               const Tag = node?.tag
               return (
-                <Tag className="list col-start-2" key={index}>
+                <Tag className="list col-start-2 text-black! font-urbanist list" key={index}>
                   {serializedChildren}
                 </Tag>
               )

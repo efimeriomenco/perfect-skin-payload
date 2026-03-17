@@ -5,12 +5,11 @@ import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
-import { homeStatic } from '@/endpoints/seed/home-static'
-
 import type { Page as PageType } from '@/payload-types'
 
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RenderHero } from '@/heros/RenderHero'
+import { ServiceSidebar } from '@/components/ServiceSidebar'
 import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { TypedLocale } from 'payload'
@@ -40,10 +39,12 @@ type Args = {
     slug?: string
     locale: TypedLocale
   }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-export default async function Page({ params: paramsPromise }: Args) {
+export default async function Page({ params: paramsPromise, searchParams: searchParamsPromise }: Args) {
   const { slug = 'home', locale = 'en' } = await paramsPromise
+  const searchParams = await searchParamsPromise
   const url = '/' + slug
 
   let page: PageType | null
@@ -53,25 +54,44 @@ export default async function Page({ params: paramsPromise }: Args) {
     locale,
   })
 
-  // Remove this code once your website is seeded
-  if (!page && slug === 'home') {
-    page = homeStatic
-  }
-
   if (!page) {
     return <PayloadRedirects url={url} />
   }
 
-  const { hero, layout } = page
+  const { hero, layout, title, layoutType } = page
+  const hasSidebar = layoutType === 'withSidebar'
 
   return (
-    <article className="pt-16 pb-24">
+    <article className="">
       <PageClient />
       {/* Allows redirects for valid pages too */}
       <PayloadRedirects disableNotFound url={url} />
 
-      <RenderHero {...hero} />
-      <RenderBlocks blocks={layout} locale={locale} />
+      <RenderHero {...hero} pageTitle={title} />
+
+      {hasSidebar ? (
+        <div className="container py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10 lg:gap-12">
+            {/* Main content */}
+            <div className="min-w-0 [&_.container]:max-w-none [&_.container]:px-0 [&_.container]:mx-0">
+              <RenderBlocks blocks={layout} locale={locale} searchParams={searchParams} />
+            </div>
+            {/* Sidebar */}
+            <aside className="hidden lg:block">
+              <div className="lg:sticky lg:top-[116px]">
+                <ServiceSidebar
+                  contactTitle={page.sidebarContactTitle}
+                  contactItems={page.sidebarContactItems}
+                  buttons={page.sidebarButtons}
+                  media={page.sidebarMedia}
+                />
+              </div>
+            </aside>
+          </div>
+        </div>
+      ) : (
+        <RenderBlocks blocks={layout} locale={locale} searchParams={searchParams} />
+      )}
     </article>
   )
 }

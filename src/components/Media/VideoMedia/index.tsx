@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/utilities/ui'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 import type { Props as MediaProps } from '../types'
 
@@ -9,7 +9,7 @@ export const VideoMedia: React.FC<MediaProps> = (props) => {
   const { onClick, resource, videoClassName } = props
 
   const videoRef = useRef<HTMLVideoElement>(null)
-  // const [showFallback] = useState<boolean>()
+  const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
     const { current: video } = videoRef
@@ -27,12 +27,18 @@ export const VideoMedia: React.FC<MediaProps> = (props) => {
     return (
       <video
         autoPlay
-        className={cn(videoClassName)}
+        className={cn(
+          'transition-opacity duration-300',
+          isLoaded ? 'opacity-100' : 'opacity-0',
+          videoClassName,
+        )}
         controls={false}
         loop
         muted
         onClick={onClick}
+        onLoadedData={() => setIsLoaded(true)}
         playsInline
+        preload="metadata"
         ref={videoRef}
       >
         <source src={`${process.env.NEXT_PUBLIC_SERVER_URL}/media/${filename}`} />

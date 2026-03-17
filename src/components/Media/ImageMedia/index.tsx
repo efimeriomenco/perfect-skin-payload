@@ -12,6 +12,10 @@ import cssVariables from '@/cssVariables'
 
 const { breakpoints } = cssVariables
 
+// Tiny inline SVG shimmer used as blurDataURL so images don't pop in from blank space
+const shimmerSvg = `<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#e5e0da"/></svg>`
+const shimmerBase64 = `data:image/svg+xml;base64,${typeof window === 'undefined' ? Buffer.from(shimmerSvg).toString('base64') : btoa(shimmerSvg)}`
+
 export const ImageMedia: React.FC<MediaProps> = (props) => {
   const {
     alt: altFromProps,
@@ -58,7 +62,11 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
   return (
     <NextImage
       alt={alt || ''}
-      className={cn(imgClassName)}
+      className={cn(
+        imgClassName,
+        'transition-all duration-300',
+        isLoading ? 'opacity-0' : 'opacity-100',
+      )}
       fill={fill}
       height={!fill ? height : undefined}
       onClick={onClick}
@@ -68,6 +76,8 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
           onLoadFromProps()
         }
       }}
+      placeholder="blur"
+      blurDataURL={shimmerBase64}
       priority={priority}
       quality={90}
       sizes={sizes}

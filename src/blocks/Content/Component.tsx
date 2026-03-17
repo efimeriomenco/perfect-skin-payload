@@ -24,7 +24,6 @@ export const ContentBlock: React.FC<
 
   return (
     <div className="container my-16">
-      <div className="grid grid-cols-4 lg:grid-cols-12 gap-y-8 gap-x-16">
         {columns &&
           columns.length > 0 &&
           columns.map((col, index) => {
@@ -37,13 +36,12 @@ export const ContentBlock: React.FC<
                 })}
                 key={index}
               >
-                {richText && <RichText content={richText} enableGutter={false} />}
+                {richText && <RichText content={richText} enableGutter={false} className="font-urbanist" style={{ fontSize: 'clamp(0.938rem, 0.88rem + 0.31vw, 1.125rem)', lineHeight: '1.5' }} />}
 
                 {enableLink && <CMSLink {...link} />}
               </div>
             )
           })}
-      </div>
     </div>
   )
 }

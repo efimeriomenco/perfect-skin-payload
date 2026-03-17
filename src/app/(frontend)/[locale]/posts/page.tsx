@@ -18,16 +18,20 @@ type Args = {
   }>
 }
 
-export default async function Page({ params }: Args) {
+export default async function Page({ params, searchParams: searchParamsPromise }: Args & { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { locale = 'en' } = await params
+  const searchParams = await searchParamsPromise
   const t = await getTranslations()
   const payload = await getPayload({ config: configPromise })
+
+  const currentPage = Number(searchParams?.page) || 1
 
   const posts = await payload.find({
     collection: 'posts',
     locale,
     depth: 1,
     limit: 12,
+    page: currentPage,
     overrideAccess: false,
   })
 
@@ -35,7 +39,7 @@ export default async function Page({ params }: Args) {
     <div className="pt-24 pb-24">
       <PageClient />
       <div className="container mb-16">
-        <div className="prose dark:prose-invert max-w-none">
+        <div className="prose max-w-none">
           <h1>{t('posts')}</h1>
         </div>
       </div>
@@ -62,6 +66,6 @@ export default async function Page({ params }: Args) {
 
 export function generateMetadata(): Metadata {
   return {
-    title: `Payload Website Template Posts`,
+    title: `Posts`,
   }
 }
