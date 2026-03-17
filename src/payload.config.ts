@@ -27,7 +27,7 @@ import { Posts } from './collections/Posts'
 import Users from './collections/Users'
 import { Members } from './collections/Members'
 import { Reviews } from './collections/Reviews'
-import { amocrmSetupHandler, amocrmStatusHandler } from './endpoints/amocrmSetup'
+import { amocrmStatusHandler } from './endpoints/amocrmSetup'
 import { syncFormSubmissionToAmoCRM } from './hooks/syncAmoCRM'
 import { Footer } from './globals/Footer/config'
 import { Header } from './globals/Header/config'
@@ -133,12 +133,6 @@ export default buildConfig({
   cors: [process.env.PAYLOAD_PUBLIC_SERVER_URL || ''].filter(Boolean),
   csrf: [process.env.PAYLOAD_PUBLIC_SERVER_URL || ''].filter(Boolean),
   endpoints: [
-    // AmoCRM integration setup - exchange auth code for tokens
-    {
-      handler: amocrmSetupHandler,
-      method: 'post',
-      path: '/amocrm-setup',
-    },
     // AmoCRM integration status check
     {
       handler: amocrmStatusHandler,

@@ -1,25 +1,16 @@
-import fs from 'fs'
-import path from 'path'
-
 // ─── Configuration ────────────────────────────────────────────────────────────
 const AMOCRM_SUBDOMAIN = process.env.AMOCRM_SUBDOMAIN || ''
 const AMOCRM_CLIENT_ID = process.env.AMOCRM_CLIENT_ID || ''
 const AMOCRM_CLIENT_SECRET = process.env.AMOCRM_CLIENT_SECRET || ''
 const AMOCRM_REDIRECT_URI = process.env.AMOCRM_REDIRECT_URI || ''
+const AMOCRM_LONG_LIVED_TOKEN = process.env.AMOCRM_LONG_LIVED_TOKEN || ''
 const AMOCRM_USER_ID = process.env.AMOCRM_USER_ID
   ? parseInt(process.env.AMOCRM_USER_ID, 10)
   : 9343310 // Default to main user ID
 
 const BASE_URL = `https://${AMOCRM_SUBDOMAIN}.amocrm.ru`
-const TOKEN_FILE = path.resolve(process.cwd(), '.amocrm-tokens.json')
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-interface AmoCRMTokens {
-  access_token: string
-  refresh_token: string
-  expires_at: number // Unix timestamp in ms
-}
-
 interface AmoCRMCustomField {
   field_code?: string
   field_id?: number
@@ -52,135 +43,22 @@ export interface FormSubmissionField {
 
 // ─── Token management ─────────────────────────────────────────────────────────
 
-/** In-memory token cache to avoid reading file on every request */
-let cachedTokens: AmoCRMTokens | null = null
-
-function readTokens(): AmoCRMTokens | null {
-  if (cachedTokens && cachedTokens.expires_at > Date.now()) {
-    return cachedTokens
-  }
-
-  try {
-    if (fs.existsSync(TOKEN_FILE)) {
-      const raw = fs.readFileSync(TOKEN_FILE, 'utf-8')
-      const tokens: AmoCRMTokens = JSON.parse(raw)
-      cachedTokens = tokens
-      return tokens
-    }
-  } catch (err) {
-    console.error('[AmoCRM] Error reading tokens file:', err)
-  }
-  return null
-}
-
-function writeTokens(tokens: AmoCRMTokens): void {
-  try {
-    fs.writeFileSync(TOKEN_FILE, JSON.stringify(tokens, null, 2), 'utf-8')
-    cachedTokens = tokens
-  } catch (err) {
-    console.error('[AmoCRM] Error writing tokens file:', err)
-  }
-}
-
 /**
- * Exchange authorization code for access + refresh tokens.
- * Call this once during initial setup.
- */
-export async function exchangeAuthCode(authCode: string): Promise<AmoCRMTokens> {
-  const response = await fetch(`${BASE_URL}/oauth2/access_token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      client_id: AMOCRM_CLIENT_ID,
-      client_secret: AMOCRM_CLIENT_SECRET,
-      grant_type: 'authorization_code',
-      code: authCode,
-      redirect_uri: AMOCRM_REDIRECT_URI,
-    }),
-  })
-
-  if (!response.ok) {
-    const errorBody = await response.text()
-    throw new Error(`[AmoCRM] Failed to exchange auth code: ${response.status} ${errorBody}`)
-  }
-
-  const data = await response.json()
-
-  const tokens: AmoCRMTokens = {
-    access_token: data.access_token,
-    refresh_token: data.refresh_token,
-    expires_at: Date.now() + data.expires_in * 1000,
-  }
-
-  writeTokens(tokens)
-  console.log('[AmoCRM] Successfully exchanged auth code for tokens')
-  return tokens
-}
-
-/**
- * Refresh the access token using the stored refresh token.
- */
-async function refreshAccessToken(): Promise<AmoCRMTokens> {
-  const currentTokens = readTokens()
-  if (!currentTokens?.refresh_token) {
-    throw new Error(
-      '[AmoCRM] No refresh token available. Run the initial setup first via /api/amocrm-setup',
-    )
-  }
-
-  const response = await fetch(`${BASE_URL}/oauth2/access_token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      client_id: AMOCRM_CLIENT_ID,
-      client_secret: AMOCRM_CLIENT_SECRET,
-      grant_type: 'refresh_token',
-      refresh_token: currentTokens.refresh_token,
-      redirect_uri: AMOCRM_REDIRECT_URI,
-    }),
-  })
-
-  if (!response.ok) {
-    const errorBody = await response.text()
-    throw new Error(`[AmoCRM] Failed to refresh token: ${response.status} ${errorBody}`)
-  }
-
-  const data = await response.json()
-
-  const tokens: AmoCRMTokens = {
-    access_token: data.access_token,
-    refresh_token: data.refresh_token,
-    expires_at: Date.now() + data.expires_in * 1000,
-  }
-
-  writeTokens(tokens)
-  console.log('[AmoCRM] Successfully refreshed access token')
-  return tokens
-}
-
-/**
- * Get a valid access token, refreshing if necessary.
+ * Get a valid access token.
+ *
+ * In production (Vercel), uses AMOCRM_LONG_LIVED_TOKEN env var directly.
+ * Long-lived tokens from AmoCRM don't expire (or have very long expiry),
+ * so no refresh logic is needed.
  */
 async function getValidAccessToken(): Promise<string> {
-  let tokens = readTokens()
-
-  if (!tokens) {
-    throw new Error(
-      '[AmoCRM] No tokens found. Run the initial setup first via /api/amocrm-setup',
-    )
+  if (AMOCRM_LONG_LIVED_TOKEN) {
+    return AMOCRM_LONG_LIVED_TOKEN
   }
 
-  // Refresh if token expires within the next 5 minutes
-  if (tokens.expires_at < Date.now() + 5 * 60 * 1000) {
-    // Only try to refresh if we have a refresh token
-    if (tokens.refresh_token) {
-      tokens = await refreshAccessToken()
-    } else {
-      console.warn('[AmoCRM] Token expired and no refresh token available. Using expired token — it may fail.')
-    }
-  }
-
-  return tokens.access_token
+  throw new Error(
+    '[AmoCRM] No AMOCRM_LONG_LIVED_TOKEN environment variable set. ' +
+      'Generate a long-lived token in AmoCRM integration settings and add it to your environment variables.',
+  )
 }
 
 // ─── API requests ─────────────────────────────────────────────────────────────
@@ -202,30 +80,6 @@ async function amoCRMRequest<T = unknown>(
       ...options.headers,
     },
   })
-
-  // If unauthorized, try refreshing token once and retry
-  if (response.status === 401) {
-    console.log('[AmoCRM] Got 401, attempting token refresh...')
-    const newTokens = await refreshAccessToken()
-
-    const retryResponse = await fetch(`${BASE_URL}${endpoint}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${newTokens.access_token}`,
-        ...options.headers,
-      },
-    })
-
-    if (!retryResponse.ok) {
-      const errorBody = await retryResponse.text()
-      throw new Error(
-        `[AmoCRM] API request failed after token refresh: ${retryResponse.status} ${errorBody}`,
-      )
-    }
-
-    return retryResponse.json() as Promise<T>
-  }
 
   if (!response.ok) {
     const errorBody = await response.text()
@@ -350,11 +204,10 @@ export async function createLeadWithContact(options: {
  * Check if AmoCRM integration is configured and has valid tokens.
  */
 export function isAmoCRMConfigured(): boolean {
-  if (!AMOCRM_SUBDOMAIN || !AMOCRM_CLIENT_ID || !AMOCRM_CLIENT_SECRET) {
+  if (!AMOCRM_SUBDOMAIN || !AMOCRM_LONG_LIVED_TOKEN) {
     return false
   }
-  const tokens = readTokens()
-  return tokens !== null
+  return true
 }
 
 /**
