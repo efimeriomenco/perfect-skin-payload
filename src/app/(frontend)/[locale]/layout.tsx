@@ -88,31 +88,41 @@ export default async function RootLayout({ children, params }: Args) {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const header = (await getCachedGlobal('header', 1, 'ro')()) as HeaderType
-  const siteSettings = (await getCachedGlobal('site-settings', 1, 'ro')()) as SiteSetting
-  const logo = header?.logo
-
-  // Get favicon/icon URL
+  // Default values
   let logoUrl = '/favicon.ico'
-  if (logo && typeof logo === 'object' && 'url' in logo && logo.url) {
-    logoUrl = logo.url.startsWith('http') 
-      ? logo.url 
-      : `${process.env.NEXT_PUBLIC_SERVER_URL}${logo.url}`
-  }
-
-  // Get Open Graph image URL from site settings
   let ogImageUrl: string | undefined
-  const ogImage = siteSettings?.ogImage
-  if (ogImage && typeof ogImage === 'object' && 'url' in ogImage && ogImage.url) {
-    ogImageUrl = ogImage.url.startsWith('http')
-      ? ogImage.url
-      : `${process.env.NEXT_PUBLIC_SERVER_URL}${ogImage.url}`
-  }
+  let siteName = 'Perfect Skin Moldova'
+  let siteTitle = 'Perfect Skin Moldova - Epilare, Laser'
+  let siteDescription = 'Perfect Skin Moldova este un centru de epilare ce oferă piele netedă, îngrijită și rezultate sigure, de durată.'
 
-  // Site metadata from settings
-  const siteName = siteSettings?.siteName || 'Perfect Skin Moldova'
-  const siteTitle = siteSettings?.siteTitle || 'Perfect Skin Moldova - Epilare, Laser'
-  const siteDescription = siteSettings?.siteDescription || 'Perfect Skin Moldova este un centru de epilare ce oferă piele netedă, îngrijită și rezultate sigure, de durată.'
+  try {
+    const header = (await getCachedGlobal('header', 1, 'ro')()) as HeaderType
+    const siteSettings = (await getCachedGlobal('site-settings', 1, 'ro')()) as SiteSetting
+    const logo = header?.logo
+
+    // Get favicon/icon URL
+    if (logo && typeof logo === 'object' && 'url' in logo && logo.url) {
+      logoUrl = logo.url.startsWith('http') 
+        ? logo.url 
+        : `${process.env.NEXT_PUBLIC_SERVER_URL}${logo.url}`
+    }
+
+    // Get Open Graph image URL from site settings
+    const ogImage = siteSettings?.ogImage
+    if (ogImage && typeof ogImage === 'object' && 'url' in ogImage && ogImage.url) {
+      ogImageUrl = ogImage.url.startsWith('http')
+        ? ogImage.url
+        : `${process.env.NEXT_PUBLIC_SERVER_URL}${ogImage.url}`
+    }
+
+    // Site metadata from settings
+    if (siteSettings?.siteName) siteName = siteSettings.siteName
+    if (siteSettings?.siteTitle) siteTitle = siteSettings.siteTitle
+    if (siteSettings?.siteDescription) siteDescription = siteSettings.siteDescription
+  } catch (error) {
+    // Use default values if fetching fails during build
+    console.warn('Could not fetch globals for metadata:', error)
+  }
 
   return {
     metadataBase: new URL(process.env.NEXT_PUBLIC_SERVER_URL || 'https://perfectskin.md'),

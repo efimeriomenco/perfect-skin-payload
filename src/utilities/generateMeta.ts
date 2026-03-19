@@ -32,11 +32,17 @@ const getImageUrl = (image: Media | string | null | undefined): string | undefin
   return undefined
 }
 
-export const generateMeta = async (args: { doc: Page | Post }): Promise<Metadata> => {
+export const generateMeta = async (args: { doc: Page | Post | null }): Promise<Metadata> => {
   const { doc } = args || {}
 
-  // Fetch site settings for fallback values
-  const siteSettings = (await getCachedGlobal('site-settings', 1, 'ro')()) as SiteSetting
+  // Fetch site settings for fallback values (with error handling)
+  let siteSettings: SiteSetting | null = null
+  try {
+    siteSettings = (await getCachedGlobal('site-settings', 1, 'ro')()) as SiteSetting
+  } catch (error) {
+    // Site settings not available, use defaults
+    console.warn('Could not fetch site settings for metadata:', error)
+  }
 
   // Page-specific OG image or fall back to site settings
   const pageOgImage = getImageUrl(doc?.meta?.image as Media | null)
