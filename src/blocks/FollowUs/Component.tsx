@@ -13,7 +13,7 @@ export const FollowUsBlock: React.FC<Props> = (props) => {
   if (!posts || posts.length === 0) return null
 
   return (
-    <section className="pt-12">
+    <section className="md:pt-12">
       {/* Title */}
       <div className="container">
         <h2 className="mb-8 md:mb-10 text-center text-2xl md:text-3xl lg:text-5xl font-medium font-urbanist text-[#2C2C2C]">

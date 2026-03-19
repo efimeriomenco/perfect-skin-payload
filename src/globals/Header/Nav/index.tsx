@@ -88,7 +88,7 @@ const NavItemWithDropdown: React.FC<{
                 asChild
                 className={cn(
                   'cursor-pointer rounded-none px-7 py-3 text-base font-normal font-work-sans',
-                  'hover:bg-[#FFF8F3] focus:bg-[#FFF8F3]',
+                  'hover:bg-[#FFF8F3] focus:bg-[#FFF8F3] hover:text-black focus:text-black',
                   'transition-colors duration-150',
                   isSubActive && 'bg-[#FFF8F3] font-medium',
                 )}

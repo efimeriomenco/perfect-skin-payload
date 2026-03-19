@@ -56,7 +56,7 @@ export const ClientReviewsBlock: React.FC<Props> = (props) => {
   if (populatedReviews.length === 0) return null
 
   return (
-    <section className="pb-16 pt-12">
+    <section className="md:pb-16 md:pt-12">
       <div className="container">
         <h2
           className="mb-10 text-center text-2xl md:text-3xl lg:text-5xl font-medium font-urbanist text-[#2C2C2C]"

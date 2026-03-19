@@ -117,7 +117,7 @@ export const PriceListBlock: React.FC<Props> = (props) => {
       <div className="mb-20">
         <div className="container">
           {womanTitle && (
-            <h3 className="text-2xl md:text-5xl font-medium text-[#2C2C2C] mb-8 font-urbanist text-center">
+            <h3 className="text-2xl md:text-5xl font-medium text-[#2C2C2C] mb-4 md:mb-8 font-urbanist text-center">
               {womanTitle}
             </h3>
           )}
@@ -163,13 +163,13 @@ export const PriceListBlock: React.FC<Props> = (props) => {
       <div>
         <div className="container">
           {menTitle && (
-            <h3 className="text-2xl md:text-5xl font-medium text-[#2C2C2C] mb-8 font-urbanist text-center">
+            <h3 className="text-2xl md:text-5xl font-medium text-[#2C2C2C] mb-4 md:mb-8 font-urbanist text-center">
               {menTitle}
             </h3>
           )}
 
           {/* Men Tabs — circular image thumbnails */}
-          <div className="flex gap-4 lg:gap-12 xl:gap-18 mb-20 md:flex-wrap justify-start md:justify-center overflow-x-auto md:overflow-visible py-4 md:py-0 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+          <div className="flex gap-4 lg:gap-12 xl:gap-18 mb-10 md:mb-20 md:flex-wrap justify-start md:justify-center overflow-x-auto md:overflow-visible py-4 md:py-0 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
             {categories.map((cat, idx) => (
               <button
                 key={cat.id || idx}
