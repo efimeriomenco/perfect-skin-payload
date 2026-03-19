@@ -36,7 +36,6 @@ export const generateMeta = async (args: { doc: Page | Post }): Promise<Metadata
   const { doc } = args || {}
 
   // Fetch site settings for fallback values
-  // @ts-expect-error - SiteSetting type will be available after running `npm run generate:types`
   const siteSettings = (await getCachedGlobal('site-settings', 1, 'ro')()) as SiteSetting
 
   // Page-specific OG image or fall back to site settings
