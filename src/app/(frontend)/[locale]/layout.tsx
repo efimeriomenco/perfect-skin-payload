@@ -5,7 +5,15 @@ import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import { Work_Sans, Urbanist } from 'next/font/google'
 import React from 'react'
-import type { Header as HeaderType } from '@/payload-types'
+import type { Header as HeaderType, Media } from '@/payload-types'
+
+// SiteSetting type (will be auto-generated after running `npm run generate:types`)
+type SiteSetting = {
+  siteName?: string | null
+  siteTitle?: string | null
+  siteDescription?: string | null
+  ogImage?: Media | string | null
+}
 
 const workSans = Work_Sans({
   subsets: ['latin'],
@@ -81,22 +89,51 @@ export default async function RootLayout({ children, params }: Args) {
 
 export async function generateMetadata(): Promise<Metadata> {
   const header = (await getCachedGlobal('header', 1, 'ro')()) as HeaderType
+  const siteSettings = (await getCachedGlobal('site-settings', 1, 'ro')()) as SiteSetting
   const logo = header?.logo
 
-  const logoUrl =
-    logo && typeof logo === 'object' && 'url' in logo && logo.url
-      ? `${process.env.NEXT_PUBLIC_SERVER_URL}${logo.url}`
-      : '/favicon.ico'
+  // Get favicon/icon URL
+  let logoUrl = '/favicon.ico'
+  if (logo && typeof logo === 'object' && 'url' in logo && logo.url) {
+    logoUrl = logo.url.startsWith('http') 
+      ? logo.url 
+      : `${process.env.NEXT_PUBLIC_SERVER_URL}${logo.url}`
+  }
+
+  // Get Open Graph image URL from site settings
+  let ogImageUrl: string | undefined
+  const ogImage = siteSettings?.ogImage
+  if (ogImage && typeof ogImage === 'object' && 'url' in ogImage && ogImage.url) {
+    ogImageUrl = ogImage.url.startsWith('http')
+      ? ogImage.url
+      : `${process.env.NEXT_PUBLIC_SERVER_URL}${ogImage.url}`
+  }
+
+  // Site metadata from settings
+  const siteName = siteSettings?.siteName || 'Perfect Skin Moldova'
+  const siteTitle = siteSettings?.siteTitle || 'Perfect Skin Moldova - Epilare, Laser'
+  const siteDescription = siteSettings?.siteDescription || 'Perfect Skin Moldova este un centru de epilare ce oferă piele netedă, îngrijită și rezultate sigure, de durată.'
 
   return {
     metadataBase: new URL(process.env.NEXT_PUBLIC_SERVER_URL || 'https://perfectskin.md'),
+    title: {
+      default: siteTitle,
+      template: `%s | ${siteName}`,
+    },
+    description: siteDescription,
     icons: {
       icon: logoUrl,
       apple: logoUrl,
     },
-    openGraph: mergeOpenGraph(),
+    openGraph: mergeOpenGraph({
+      title: siteTitle,
+      description: siteDescription,
+      siteName: siteName,
+    }, ogImageUrl),
     twitter: {
       card: 'summary_large_image',
+      title: siteTitle,
+      description: siteDescription,
     },
   }
 }

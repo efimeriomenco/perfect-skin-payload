@@ -1,26 +1,59 @@
 import type { Metadata } from 'next'
 
-import type { Page, Post } from '../payload-types'
+import type { Media, Page, Post } from '../payload-types'
 
 import { mergeOpenGraph } from './mergeOpenGraph'
+import { getCachedGlobal } from './getGlobals'
+
+// SiteSetting type (matches the global config)
+type SiteSetting = {
+  siteName?: string | null
+  siteTitle?: string | null
+  siteDescription?: string | null
+  ogImage?: Media | string | null
+}
+
+/**
+ * Get image URL handling both relative and absolute URLs (Vercel Blob, etc.)
+ */
+const getImageUrl = (image: Media | string | null | undefined): string | undefined => {
+  if (!image) return undefined
+  
+  if (typeof image === 'string') {
+    return image.startsWith('http') ? image : `${process.env.NEXT_PUBLIC_SERVER_URL}${image}`
+  }
+  
+  if (typeof image === 'object' && 'url' in image && image.url) {
+    return image.url.startsWith('http') 
+      ? image.url 
+      : `${process.env.NEXT_PUBLIC_SERVER_URL}${image.url}`
+  }
+  
+  return undefined
+}
 
 export const generateMeta = async (args: { doc: Page | Post }): Promise<Metadata> => {
   const { doc } = args || {}
 
-  const ogImage =
-    typeof doc?.meta?.image === 'object' &&
-    doc.meta.image !== null &&
-    'url' in doc.meta.image &&
-    `${process.env.NEXT_PUBLIC_SERVER_URL}${doc.meta.image.url}`
+  // Fetch site settings for fallback values
+  // @ts-expect-error - SiteSetting type will be available after running `npm run generate:types`
+  const siteSettings = (await getCachedGlobal('site-settings', 1, 'ro')()) as SiteSetting
 
-  const title = doc?.meta?.title
-    ? doc?.meta?.title + ''
-    : ''
+  // Page-specific OG image or fall back to site settings
+  const pageOgImage = getImageUrl(doc?.meta?.image as Media | null)
+  const defaultOgImage = getImageUrl(siteSettings?.ogImage as Media | null)
+  const ogImage = pageOgImage || defaultOgImage
+
+  // Page-specific title or fall back to site settings
+  const title = doc?.meta?.title || siteSettings?.siteTitle || ''
+  
+  // Page-specific description or fall back to site settings
+  const description = doc?.meta?.description || siteSettings?.siteDescription || ''
 
   return {
-    description: doc?.meta?.description,
+    description,
     openGraph: mergeOpenGraph({
-      description: doc?.meta?.description || '',
+      description,
       images: ogImage
         ? [
             {

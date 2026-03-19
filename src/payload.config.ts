@@ -31,6 +31,7 @@ import { amocrmStatusHandler } from './endpoints/amocrmSetup'
 import { syncFormSubmissionToAmoCRM } from './hooks/syncAmoCRM'
 import { Footer } from './globals/Footer/config'
 import { Header } from './globals/Header/config'
+import { SiteSettings } from './globals/SiteSettings/config'
 import { revalidateRedirects } from './hooks/revalidateRedirects'
 import { GenerateTitle, GenerateURL } from '@payloadcms/plugin-seo/types'
 import { Page, Post } from 'src/payload-types'
@@ -140,7 +141,7 @@ export default buildConfig({
       path: '/amocrm-status',
     },
   ],
-  globals: [Header, Footer],
+  globals: [Header, Footer, SiteSettings],
   plugins: [
     redirectsPlugin({
       collections: ['pages', 'posts'],

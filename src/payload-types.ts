@@ -108,10 +108,12 @@ export interface Config {
   globals: {
     header: Header;
     footer: Footer;
+    'site-settings': SiteSetting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
   };
   locale: 'ro' | 'ru' | 'en';
   user: User;
@@ -2003,6 +2005,31 @@ export interface Footer {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: number;
+  /**
+   * The name of your website (shown in browser tabs and social shares)
+   */
+  siteName?: string | null;
+  /**
+   * Default title shown in search results and social shares when a page has no custom title
+   */
+  siteTitle?: string | null;
+  /**
+   * Default description shown in search results and social shares (max 160 characters recommended)
+   */
+  siteDescription?: string | null;
+  /**
+   * Default image shown when sharing links on social media. Recommended size: 1200x630px
+   */
+  ogImage?: (number | null) | Media;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
@@ -2146,6 +2173,19 @@ export interface FooterSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  siteName?: T;
+  siteTitle?: T;
+  siteDescription?: T;
+  ogImage?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
