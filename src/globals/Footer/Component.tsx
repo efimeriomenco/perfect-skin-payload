@@ -16,6 +16,7 @@ import { TypedLocale } from 'payload'
 import { FooterLocaleSwitcher } from './LocaleSwitcher'
 import { Media } from '@/components/Media'
 import { FooterWrapper } from './FooterWrapper'
+import { GoogleIcon } from './icons/GoogleIcon'
 
 async function getPages(locale: TypedLocale): Promise<Page[]> {
   const payload = await getPayload({ config: configPromise })
@@ -181,7 +182,7 @@ export async function Footer({ locale }: { locale: TypedLocale }) {
                     className="w-7 h-7 rounded-full bg-[#C8A97E] flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
                     aria-label="Google"
                   >
-                    <Globe className="w-5 h-5" />
+                    <GoogleIcon className="w-5 h-5" />
                   </a>
                 )}
               </div>
