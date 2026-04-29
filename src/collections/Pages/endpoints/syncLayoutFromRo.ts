@@ -98,6 +98,7 @@ export const syncLayoutFromRoHandler: PayloadHandler = async (req) => {
       locale,
       depth: 0,
       overrideAccess: true,
+      draft: true,
       data: {
         layout: [...targetLayout, ...missingBlocksWithoutIds] as any,
       },

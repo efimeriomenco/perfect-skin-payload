@@ -3,6 +3,19 @@
 import React, { useState } from 'react'
 import { toast, useDocumentInfo } from '@payloadcms/ui'
 
+type SyncErrorResponse = {
+  errors?: Array<{
+    data?: {
+      errors?: Array<{
+        label?: string
+        message?: string
+        path?: string
+      }>
+    }
+    message?: string
+  }>
+}
+
 export function SyncLayoutButton() {
   const { id } = useDocumentInfo() as { id?: string | number }
   const [syncing, setSyncing] = useState(false)
@@ -16,10 +29,40 @@ export function SyncLayoutButton() {
         method: 'POST',
       })
 
-      if (!res.ok) throw new Error('Sync failed')
+      if (!res.ok) {
+        let message = 'Could not sync layout. Please try again.'
+
+        try {
+          const data = (await res.json()) as SyncErrorResponse
+          const fieldErrors = data?.errors?.[0]?.data?.errors
+
+          if (fieldErrors && fieldErrors.length > 0) {
+            const details = fieldErrors
+              .map((err) => {
+                const field = err.label || err.path || 'Field'
+                const reason = err.message || 'Invalid value'
+                return `${field}: ${reason}`
+              })
+              .join(' | ')
+
+            message = `Sync failed. Please complete required fields first. ${details}`
+          } else if (data?.errors?.[0]?.message) {
+            message = `Sync failed: ${data.errors[0].message}`
+          }
+        } catch {
+          // keep default fallback message
+        }
+
+        throw new Error(message)
+      }
+
       toast.success('Layout synced from RO to RU/EN.')
-    } catch {
-      toast.error('Could not sync layout. Please try again.')
+      // Reload to fetch updated localized layout immediately.
+      window.location.reload()
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Could not sync layout. Please try again.'
+      toast.error(message)
     } finally {
       setSyncing(false)
     }
