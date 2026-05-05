@@ -62,6 +62,11 @@ export const PriceList: Block = {
       type: 'array',
       required: true,
       minRows: 1,
+      admin: {
+        components: {
+          RowLabel: '@/blocks/PriceList/CategoryRowLabel',
+        },
+      },
       labels: {
         singular: 'Category',
         plural: 'Categories',
@@ -78,6 +83,18 @@ export const PriceList: Block = {
           type: 'upload',
           relationTo: 'media',
           label: 'Category Image',
+        },
+        {
+          name: 'showInWomen',
+          type: 'checkbox',
+          label: 'Show in Women section',
+          defaultValue: true,
+        },
+        {
+          name: 'showInMen',
+          type: 'checkbox',
+          label: 'Show in Men section',
+          defaultValue: true,
         },
         {
           name: 'womanServices',

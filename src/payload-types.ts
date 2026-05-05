@@ -806,6 +806,8 @@ export interface PriceListBlock {
   categories: {
     categoryName: string;
     categoryImage?: (number | null) | Media;
+    showInWomen?: boolean | null;
+    showInMen?: boolean | null;
     womanServices?:
       | {
           serviceName: string;
@@ -1393,6 +1395,8 @@ export interface PriceListBlockSelect<T extends boolean = true> {
     | {
         categoryName?: T;
         categoryImage?: T;
+        showInWomen?: T;
+        showInMen?: T;
         womanServices?:
           | T
           | {

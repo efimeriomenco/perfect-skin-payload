@@ -137,16 +137,26 @@ const ServiceList: React.FC<{
 
 export const PriceListBlock: React.FC<Props> = (props) => {
   const { title, womanTitle, menTitle, categories } = props
-  const [activeTab, setActiveTab] = useState(0)
+  const [activeWomenTab, setActiveWomenTab] = useState(0)
+  const [activeMenTab, setActiveMenTab] = useState(0)
 
   if (!categories || categories.length === 0) return null
 
-  const activeCategory = categories[activeTab]
+  const womenCategories = categories.filter((cat) => (cat as any).showInWomen !== false)
+  const menCategories = categories.filter((cat) => (cat as any).showInMen !== false)
+
+  const safeWomenTab =
+    womenCategories.length > 0 ? Math.min(activeWomenTab, womenCategories.length - 1) : 0
+  const safeMenTab = menCategories.length > 0 ? Math.min(activeMenTab, menCategories.length - 1) : 0
+
+  const activeWomenCategory = womenCategories[safeWomenTab]
+  const activeMenCategory = menCategories[safeMenTab]
 
   return (
     <section>
       {/* ——— Woman Section ——— */}
-      <div className="mb-20">
+      {womenCategories.length > 0 && (
+        <div className="mb-20">
         <div className="container">
           {womanTitle && (
             <h3 className="text-2xl md:text-5xl font-medium text-[#2C2C2C] mb-4 md:mb-8 font-urbanist text-center">
@@ -156,15 +166,15 @@ export const PriceListBlock: React.FC<Props> = (props) => {
 
           {/* Woman Tabs — circular image thumbnails */}
           <div className="flex gap-4 lg:gap-12 xl:gap-18 mb-10 md:mb-20 md:flex-wrap justify-start md:justify-center overflow-x-auto md:overflow-visible py-4 md:py-0 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
-            {categories.map((cat, idx) => (
+            {womenCategories.map((cat, idx) => (
               <button
                 key={cat.id || idx}
-                onClick={() => setActiveTab(idx)}
+                onClick={() => setActiveWomenTab(idx)}
                 className="cursor-pointer flex flex-col items-center gap-1.5 md:gap-1 text-xs md:text-sm font-semibold font-urbanist transition-all duration-300 group shrink-0"
               >
                 <div
                   className={`shrink-0 w-[80px] h-[80px] md:w-[100px] md:h-[100px] xl:w-[140px] xl:h-[140px] rounded-full overflow-hidden border-2 md:border-3 transition-all duration-300 group-hover:shadow-lg group-hover:scale-105 ${
-                    activeTab === idx
+                    safeWomenTab === idx
                       ? 'border-[#B6A475] shadow-md md:shadow-[0_0_20px_rgba(200,169,126,0.3)] scale-105'
                       : 'border-transparent group-hover:border-[#B6A475]'
                   }`}
@@ -192,17 +202,19 @@ export const PriceListBlock: React.FC<Props> = (props) => {
           style={{ backgroundColor: '#FFF8F3' }}
         >
           <div className="container">
-            {activeCategory?.womanServices && activeCategory.womanServices.length > 0 ? (
-              <ServiceList services={activeCategory.womanServices as ServiceType[]} circular />
+            {activeWomenCategory?.womanServices && activeWomenCategory.womanServices.length > 0 ? (
+              <ServiceList services={activeWomenCategory.womanServices as ServiceType[]} circular />
             ) : (
               <p className="text-sm text-[#7A7A7A] text-center py-8">No services available</p>
             )}
           </div>
         </div>
       </div>
+      )}
 
       {/* ——— Men Section ——— */}
-      <div>
+      {menCategories.length > 0 && (
+        <div>
         <div className="container">
           {menTitle && (
             <h3 className="text-2xl md:text-5xl font-medium text-[#2C2C2C] mb-4 md:mb-8 font-urbanist text-center">
@@ -212,12 +224,12 @@ export const PriceListBlock: React.FC<Props> = (props) => {
 
           {/* Men Tabs — rectangular */}
           <div className="grid grid-cols-2 gap-3 mb-10 md:flex md:flex-wrap md:justify-center">
-            {categories.map((cat, idx) => (
+            {menCategories.map((cat, idx) => (
               <Button
                 key={cat.id || idx}
-                onClick={() => setActiveTab(idx)}
+                onClick={() => setActiveMenTab(idx)}
                 className={`cursor-pointer flex items-center rounded-none! font-work-sans tracking-[25%] justify-start text-sm font-semibold transition-all duration-300 border text-left leading-tight hover:text-white hover:shadow-md w-full md:w-[250px] h-[60px] ${
-                  activeTab === idx
+                  safeMenTab === idx
                     ? 'bg-[#3F3F3F] text-white border-[#3F3F3F] shadow-md'
                     : 'bg-white text-[#3F3F3F] border-[#E5E5E5] hover:border-[#3F3F3F] hover:bg-[#3F3F3F]'
                 }`}
@@ -234,14 +246,15 @@ export const PriceListBlock: React.FC<Props> = (props) => {
           style={{ backgroundColor: '#FFF8F3' }}
         >
           <div className="container">
-            {activeCategory?.menServices && activeCategory.menServices.length > 0 ? (
-              <ServiceList services={activeCategory.menServices as ServiceType[]} />
+            {activeMenCategory?.menServices && activeMenCategory.menServices.length > 0 ? (
+              <ServiceList services={activeMenCategory.menServices as ServiceType[]} />
             ) : (
               <p className="text-sm text-[#7A7A7A] text-center py-8">No services available</p>
             )}
           </div>
         </div>
       </div>
+      )}
     </section>
   )
 }
